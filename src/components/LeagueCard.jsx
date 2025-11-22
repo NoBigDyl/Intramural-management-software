@@ -69,13 +69,23 @@ const LeagueCard = ({ league }) => {
                     <div className="p-1.5 rounded-md bg-white/5 text-gray-500">
                         <Calendar size={14} />
                     </div>
-                    <span>{league.season} • {league.startDate}</span>
+                    <span>{league.startDate || league.start_date} - {league.endDate || league.end_date}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-400">
                     <div className="p-1.5 rounded-md bg-white/5 text-gray-500">
                         <Users size={14} />
                     </div>
-                    <span>{league.maxTeams} Teams Max</span>
+                    <span>{league.maxTeams || league.max_teams} Teams Max</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-400">
+                    <div className="p-1.5 rounded-md bg-white/5 text-gray-500">
+                        <MoreVertical size={14} />
+                    </div>
+                    <span>
+                        {Array.isArray(league.divisions) && league.divisions.length > 0
+                            ? league.divisions.join(', ')
+                            : 'Open'}
+                    </span>
                 </div>
             </div>
 

@@ -38,9 +38,9 @@ const initialTeams = [
 ];
 
 const initialUsers = [
-    { id: 'u1', name: 'Admin User', email: 'admin@university.edu', role: 'director', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin' },
-    { id: 'u2', name: 'John Doe', email: 'john@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John' },
-    { id: 'u3', name: 'Jane Smith', email: 'jane@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jane' },
+    { id: 'u1', name: 'Admin User', email: 'admin@university.edu', role: 'director', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Admin' },
+    { id: 'u2', name: 'John Doe', email: 'john@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=John' },
+    { id: 'u3', name: 'Jane Smith', email: 'jane@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Jane' },
 ];
 
 export const useStore = create((set, get) => ({

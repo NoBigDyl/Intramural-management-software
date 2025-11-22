@@ -14,7 +14,8 @@ const CreateLeaguePage = () => {
         startDate: '',
         endDate: '',
         maxTeams: 16,
-        type: 'Single Elimination'
+        type: 'Single Elimination',
+        division: ''
     });
 
     const handleChange = (e) => {
@@ -22,17 +23,28 @@ const CreateLeaguePage = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleDivisionChange = (division) => {
+        setFormData(prev => ({ ...prev, division }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitError(null);
+
+        if (!formData.division) {
+            setSubmitError("Please select a division.");
+            return;
+        }
+
         try {
             await addLeague({
                 ...formData,
                 season: 'Fall 2025',
                 status: 'upcoming',
                 registrationOpen: true,
-                divisions: ['Open']
+                divisions: [formData.division] // Backend expects an array
             });
+            navigate('/leagues');
             // Only navigate if no error (store might set error, but addLeague is async void)
             // Better approach: check store error after await, or have addLeague return success
             navigate('/leagues');
@@ -109,6 +121,27 @@ const CreateLeaguePage = () => {
                         </div>
                     </div>
 
+
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Divisions</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {['Men\'s', 'Women\'s', 'Co-Rec', 'Open'].map((div) => (
+                                <label key={div} className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${formData.division === div ? 'bg-indigo-50 border-indigo-200' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                    <input
+                                        type="radio"
+                                        name="division"
+                                        value={div}
+                                        checked={formData.division === div}
+                                        onChange={() => handleDivisionChange(div)}
+                                        className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{div}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -163,8 +196,8 @@ const CreateLeaguePage = () => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

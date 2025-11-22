@@ -1,14 +1,32 @@
 import React from 'react';
 import { Bell, Search, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useStore } from '../store';
 
 const Header = () => {
-    const { user } = useAuth();
+    const { user, login } = useAuth();
+    const { users } = useStore();
 
     return (
-        <header className="h-20 px-8 flex items-center justify-between z-20 sticky top-0 bg-obsidian/50 backdrop-blur-md border-b border-white/5">
+        <header className="h-20 px-4 md:px-8 flex items-center justify-between z-20 sticky top-0 bg-obsidian/50 backdrop-blur-md border-b border-white/5">
             <div className="flex items-center gap-4 flex-1">
-                <div className="relative w-96 group">
+                {/* Mobile Role Switcher */}
+                <div className="flex md:hidden gap-2 mr-2">
+                    {users.map(u => (
+                        <button
+                            key={u.id}
+                            onClick={() => login(u.email)}
+                            className={`w-8 h-8 rounded-full border-2 overflow-hidden transition-all ${user?.id === u.id
+                                ? 'border-neon-blue shadow-neon-blue scale-110'
+                                : 'border-transparent opacity-50 hover:opacity-100'
+                                }`}
+                        >
+                            <img src={u.avatar} alt={u.role} />
+                        </button>
+                    ))}
+                </div>
+
+                <div className="relative w-full max-w-md group hidden md:block">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-blue transition-colors" size={20} />
                     <input
                         type="text"
@@ -18,13 +36,13 @@ const Header = () => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 md:gap-6">
                 <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
                     <Bell size={20} />
                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-neon-purple rounded-full shadow-neon-purple"></span>
                 </button>
 
-                <div className="h-8 w-px bg-white/10"></div>
+                <div className="h-8 w-px bg-white/10 hidden md:block"></div>
 
                 <div className="flex items-center gap-3">
                     <div className="text-right hidden md:block">

@@ -14,7 +14,8 @@ const EditLeaguePage = () => {
         startDate: '',
         endDate: '',
         maxTeams: 16,
-        type: 'Single Elimination'
+        type: 'Single Elimination',
+        division: ''
     });
 
     useEffect(() => {
@@ -26,7 +27,8 @@ const EditLeaguePage = () => {
                 startDate: league.start_date || league.startDate || '',
                 endDate: league.end_date || league.endDate || '',
                 maxTeams: league.max_teams || league.maxTeams || 16,
-                type: league.format || 'Single Elimination'
+                type: league.format || 'Single Elimination',
+                division: (league.divisions && league.divisions[0]) || ''
             });
         } else {
             // If league not found in store (e.g. direct link), might need to fetch or redirect
@@ -40,11 +42,18 @@ const EditLeaguePage = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleDivisionChange = (division) => {
+        setFormData(prev => ({ ...prev, division }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitError(null);
         try {
-            await updateLeague(id, formData);
+            await updateLeague(id, {
+                ...formData,
+                divisions: [formData.division] // Backend expects an array
+            });
             navigate('/leagues');
         } catch (err) {
             console.error('Update error:', err);
@@ -118,6 +127,27 @@ const EditLeaguePage = () => {
                         </div>
                     </div>
 
+
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Divisions</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {['Men\'s', 'Women\'s', 'Co-Rec', 'Open'].map((div) => (
+                                <label key={div} className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${formData.division === div ? 'bg-indigo-50 border-indigo-200' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                    <input
+                                        type="radio"
+                                        name="division"
+                                        value={div}
+                                        checked={formData.division === div}
+                                        onChange={() => handleDivisionChange(div)}
+                                        className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{div}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -172,8 +202,8 @@ const EditLeaguePage = () => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
