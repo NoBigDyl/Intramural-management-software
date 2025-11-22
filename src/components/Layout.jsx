@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import MobileNav from './MobileNav';
 
 const Layout = ({ children }) => {
     return (
@@ -14,9 +15,10 @@ const Layout = ({ children }) => {
                 </div>
 
                 <Header />
-                <main className="flex-1 overflow-y-auto p-8 relative z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pb-24 md:pb-8">
                     {children}
                 </main>
+                <MobileNav />
             </div>
         </div>
     );

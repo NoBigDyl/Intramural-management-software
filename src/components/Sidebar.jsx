@@ -33,7 +33,7 @@ const Sidebar = () => {
     };
 
     return (
-        <div className="w-64 bg-charcoal/90 backdrop-blur-xl border-r border-white/5 h-screen flex flex-col">
+        <div className="hidden md:flex w-64 bg-charcoal/90 backdrop-blur-xl border-r border-white/5 h-screen flex-col">
             <div className="p-6 flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-neon-blue to-neon-cyan rounded-xl flex items-center justify-center text-obsidian font-bold shadow-neon-blue">
                     CC

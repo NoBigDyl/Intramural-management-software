@@ -45,7 +45,7 @@ const StudentHomePage = () => {
             {/* Hero: Next Game */}
             <div className="relative overflow-hidden rounded-2xl glass-panel p-1 group">
                 <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/10 to-neon-purple/10 opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative bg-charcoal/80 backdrop-blur-xl rounded-xl p-8 border border-white/5">
+                <div className="relative bg-charcoal/80 backdrop-blur-xl rounded-xl p-4 md:p-8 border border-white/5">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8">
 
                         {/* Matchup */}
@@ -69,7 +69,7 @@ const StudentHomePage = () => {
                         </div>
 
                         {/* Details */}
-                        <div className="flex flex-col gap-4 min-w-[200px] border-l border-white/10 pl-8">
+                        <div className="flex flex-col gap-4 min-w-[200px] border-t md:border-t-0 md:border-l border-white/10 pt-8 md:pt-0 md:pl-8 w-full md:w-auto">
                             <div>
                                 <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">League</div>
                                 <div className="text-white font-medium">{upcomingGame.league}</div>
