@@ -6,7 +6,8 @@ import { useStore } from '../store';
 
 const CreateLeaguePage = () => {
     const navigate = useNavigate();
-    const { addLeague } = useStore();
+    const { addLeague, error, isLoading } = useStore();
+    const [submitError, setSubmitError] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         sport: 'Basketball',
@@ -21,16 +22,24 @@ const CreateLeaguePage = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        addLeague({
-            ...formData,
-            season: 'Fall 2025', // Hardcoded for now, could be dynamic
-            status: 'upcoming',
-            registrationOpen: true,
-            divisions: ['Open'] // Default division
-        });
-        navigate('/leagues');
+        setSubmitError(null);
+        try {
+            await addLeague({
+                ...formData,
+                season: 'Fall 2025',
+                status: 'upcoming',
+                registrationOpen: true,
+                divisions: ['Open']
+            });
+            // Only navigate if no error (store might set error, but addLeague is async void)
+            // Better approach: check store error after await, or have addLeague return success
+            navigate('/leagues');
+        } catch (err) {
+            console.error('Submission error:', err);
+            setSubmitError(err.message || 'Failed to create league.');
+        }
     };
 
     return (
@@ -50,6 +59,12 @@ const CreateLeaguePage = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {/* Error Alert */}
+                    {(error || submitError) && (
+                        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                            {error || submitError}
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">League Name</label>
                         <input

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Filter } from 'lucide-react';
 import LeagueCard from '../components/LeagueCard';
@@ -6,7 +6,11 @@ import { useStore } from '../store';
 
 const LeaguesPage = () => {
     const navigate = useNavigate();
-    const { leagues } = useStore();
+    const { leagues, fetchLeagues } = useStore();
+
+    useEffect(() => {
+        fetchLeagues();
+    }, [fetchLeagues]);
 
     return (
         <div className="space-y-8">

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 // Initial Mock Data
 const initialLeagues = [
@@ -46,15 +47,62 @@ export const useStore = create((set, get) => ({
     // State
     currentUser: initialUsers[0], // Default to Admin for now
     users: initialUsers,
-    leagues: initialLeagues,
+
+    leagues: [], // Start with empty leagues
     teams: initialTeams,
+    isLoading: false,
+    error: null,
 
     // Actions
+    fetchLeagues: async () => {
+        set({ isLoading: true });
+        try {
+            const { data, error } = await supabase
+                .from('leagues')
+                .select('*');
+            if (error) throw error;
+            set({ leagues: data || [], isLoading: false });
+        } catch (error) {
+            console.error('Error fetching leagues:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
     setCurrentUser: (user) => set({ currentUser: user }),
 
-    addLeague: (league) => set((state) => ({
-        leagues: [...state.leagues, { ...league, id: `l${Date.now()}` }]
-    })),
+    addLeague: async (league) => {
+        set({ isLoading: true });
+        try {
+            const dbLeague = {
+                name: league.name,
+                sport: league.sport,
+                season: league.season,
+                status: league.status,
+                registration_open: league.registrationOpen,
+                start_date: league.startDate,
+                end_date: league.endDate,
+                max_teams: parseInt(league.maxTeams),
+                format: league.type || league.format,
+                divisions: league.divisions
+            };
+
+            const { data, error } = await supabase
+                .from('leagues')
+                .insert([dbLeague])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            set((state) => ({
+                leagues: [...state.leagues, data],
+                isLoading: false
+            }));
+        } catch (error) {
+            console.error('Error adding league:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
 
     updateLeague: (id, updates) => set((state) => ({
         leagues: state.leagues.map(l => l.id === id ? { ...l, ...updates } : l)

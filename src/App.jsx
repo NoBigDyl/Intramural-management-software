@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import LeaguesPage from './pages/LeaguesPage';
@@ -36,6 +37,19 @@ const HomeRoute = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    async function testInsert() {
+      const { data, error } = await supabase
+        .from('players')
+        .insert([{ name: 'Dylan' }])
+
+      console.log('INSERT DATA:', data)
+      console.log('INSERT ERROR:', error)
+    }
+
+    testInsert()
+  }, [])
+
   return (
     <AuthProvider>
       <Layout>
