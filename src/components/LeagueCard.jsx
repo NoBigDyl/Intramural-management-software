@@ -1,9 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, MoreVertical, Edit2, Copy, ArrowRight } from 'lucide-react';
+import { Calendar, Users, MoreVertical, Edit2, Copy, ArrowRight, Trash2 } from 'lucide-react';
+import { useStore } from '../store';
 
 const LeagueCard = ({ league }) => {
     const navigate = useNavigate();
+    const { deleteLeague } = useStore();
+
+    const handleDelete = (e) => {
+        e.stopPropagation();
+        if (window.confirm('Are you sure you want to delete this league?')) {
+            deleteLeague(league.id);
+        }
+    };
 
     return (
         <div className="glass-panel p-6 hover:border-neon-blue/30 transition-all duration-300 group relative overflow-hidden">
@@ -25,7 +34,14 @@ const LeagueCard = ({ league }) => {
                     <h3 className="font-display font-bold text-xl text-white group-hover:text-neon-blue transition-colors">{league.name}</h3>
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Edit">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/leagues/edit/${league.id}`);
+                        }}
+                        className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        title="Edit"
+                    >
                         <Edit2 size={16} />
                     </button>
                     <button
@@ -37,6 +53,13 @@ const LeagueCard = ({ league }) => {
                         title="Duplicate"
                     >
                         <Copy size={16} />
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete"
+                    >
+                        <Trash2 size={16} />
                     </button>
                 </div>
             </div>
@@ -67,7 +90,10 @@ const LeagueCard = ({ league }) => {
                         +12
                     </div>
                 </div>
-                <button className="flex items-center gap-2 text-sm font-medium text-neon-blue hover:text-white transition-colors group/btn">
+                <button
+                    onClick={() => navigate(`/leagues/${league.id}`)}
+                    className="flex items-center gap-2 text-sm font-medium text-neon-blue hover:text-white transition-colors group/btn"
+                >
                     View Details
                     <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                 </button>

@@ -104,9 +104,61 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    updateLeague: (id, updates) => set((state) => ({
-        leagues: state.leagues.map(l => l.id === id ? { ...l, ...updates } : l)
-    })),
+    updateLeague: async (id, updates) => {
+        set({ isLoading: true });
+        try {
+            // Map frontend keys to DB keys if necessary
+            const dbUpdates = {};
+            if (updates.name) dbUpdates.name = updates.name;
+            if (updates.sport) dbUpdates.sport = updates.sport;
+            if (updates.season) dbUpdates.season = updates.season;
+            if (updates.status) dbUpdates.status = updates.status;
+            if (updates.registrationOpen !== undefined) dbUpdates.registration_open = updates.registrationOpen;
+            if (updates.startDate) dbUpdates.start_date = updates.startDate;
+            if (updates.endDate) dbUpdates.end_date = updates.endDate;
+            if (updates.maxTeams) dbUpdates.max_teams = parseInt(updates.maxTeams);
+            if (updates.type) dbUpdates.format = updates.type;
+            if (updates.format) dbUpdates.format = updates.format;
+            if (updates.divisions) dbUpdates.divisions = updates.divisions;
+
+            const { data, error } = await supabase
+                .from('leagues')
+                .update(dbUpdates)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            set((state) => ({
+                leagues: state.leagues.map(l => l.id === id ? data : l),
+                isLoading: false
+            }));
+        } catch (error) {
+            console.error('Error updating league:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
+    deleteLeague: async (id) => {
+        set({ isLoading: true });
+        try {
+            const { error } = await supabase
+                .from('leagues')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            set((state) => ({
+                leagues: state.leagues.filter(l => l.id !== id),
+                isLoading: false
+            }));
+        } catch (error) {
+            console.error('Error deleting league:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
 
     addTeam: (team) => set((state) => ({
         teams: [...state.teams, { ...team, id: `t${Date.now()}` }]

@@ -4,6 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import LeaguesPage from './pages/LeaguesPage';
 import CreateLeaguePage from './pages/CreateLeaguePage';
+import EditLeaguePage from './pages/EditLeaguePage';
+import LeagueDetailsPage from './pages/LeagueDetailsPage';
 import TeamsPage from './pages/TeamsPage';
 import ImportPage from './pages/ImportPage';
 import DuplicateLeaguePage from './pages/DuplicateLeaguePage';
@@ -57,6 +59,8 @@ const App = () => {
           <Route path="/" element={<HomeRoute />} />
           <Route path="/leagues" element={<LeaguesPage />} />
           <Route path="/leagues/create" element={<CreateLeaguePage />} />
+          <Route path="/leagues/edit/:id" element={<EditLeaguePage />} />
+          <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
           <Route path="/leagues/duplicate/:id" element={<DuplicateLeaguePage />} />
           <Route path="/teams" element={<TeamsPage />} />
           <Route path="/import" element={<ImportPage />} />
