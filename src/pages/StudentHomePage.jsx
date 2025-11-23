@@ -163,15 +163,23 @@ const StudentHomePage = () => {
                                     {upcomingGame.location}
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setIsCheckedIn(!isCheckedIn)}
-                                className={`w-full py-2 rounded-lg font-bold transition-all duration-300 ${isCheckedIn
-                                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                                    : 'bg-white/10 hover:bg-white/20 text-white'
-                                    }`}
-                            >
-                                {isCheckedIn ? 'Checked In ✓' : 'Check In'}
-                            </button>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => setIsCheckedIn(!isCheckedIn)}
+                                    className={`w-full py-2 rounded-lg font-bold transition-all duration-300 ${isCheckedIn
+                                        ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                                        : 'bg-white/10 hover:bg-white/20 text-white'
+                                        }`}
+                                >
+                                    {isCheckedIn ? 'Checked In ✓' : 'Check In'}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/leagues/l1/schedule')} // Hardcoded for demo, should be dynamic
+                                    className="w-full py-2 rounded-lg font-bold bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue hover:text-obsidian transition-all"
+                                >
+                                    View Full Schedule
+                                </button>
+                            </div>
                         </div>
 
                     </div>
@@ -195,15 +203,26 @@ const StudentHomePage = () => {
                     </div>
                     <div className="space-y-4">
                         {myTeams.map(team => (
-                            <div key={team.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-neon-blue/30 transition-all cursor-pointer group">
+                            <div key={team.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-neon-blue/30 transition-all group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="font-bold text-white text-lg group-hover:text-neon-blue transition-colors">{team.name}</div>
                                     <div className="text-xs font-mono text-green-400 bg-green-400/10 px-2 py-1 rounded">{team.record}</div>
                                 </div>
                                 <div className="text-sm text-gray-400 mb-3">{team.league}</div>
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                    <Calendar size={12} />
-                                    Next: {team.nextGame}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <Calendar size={12} />
+                                        Next: {team.nextGame}
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/leagues/${team.leagueId}/schedule`);
+                                        }}
+                                        className="text-xs font-bold text-neon-blue hover:text-white transition-colors"
+                                    >
+                                        View Schedule &rarr;
+                                    </button>
                                 </div>
                             </div>
                         ))}

@@ -9,10 +9,30 @@ const LeagueSchedulePage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { matches, teams, fetchMatches, fetchTeams, createMatch, createMatches } = useStore();
+    const { matches, teams, fetchMatches, fetchTeams, createMatch, createMatches, updateMatch } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [scoreModal, setScoreModal] = useState({
+        isOpen: false,
+        match: null,
+        homeScore: '',
+        awayScore: ''
+    });
+
+    const handleSaveScore = async () => {
+        if (!scoreModal.match) return;
+        try {
+            await updateMatch(scoreModal.match.id, {
+                home_score: parseInt(scoreModal.homeScore),
+                away_score: parseInt(scoreModal.awayScore),
+                status: 'completed'
+            });
+            setScoreModal({ isOpen: false, match: null, homeScore: '', awayScore: '' });
+        } catch (error) {
+            alert('Error saving score: ' + error.message);
+        }
+    };
 
     // Manual Match State
     const [newMatch, setNewMatch] = useState({
@@ -278,6 +298,50 @@ const LeagueSchedulePage = () => {
                 </div>
             )}
 
+            {/* Score Entry Modal */}
+            {scoreModal.isOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-charcoal border border-white/10 rounded-xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h3 className="text-xl font-bold text-white mb-4">Enter Match Score</h3>
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="text-center flex-1">
+                                <span className="block text-sm text-gray-400 mb-1">{getTeamName(scoreModal.match.home_team_id)}</span>
+                                <input
+                                    type="number"
+                                    className="w-16 p-2 text-center rounded bg-white/5 border border-white/10 text-white font-bold text-xl"
+                                    value={scoreModal.homeScore}
+                                    onChange={e => setScoreModal({ ...scoreModal, homeScore: e.target.value })}
+                                />
+                            </div>
+                            <span className="text-gray-400 font-bold">-</span>
+                            <div className="text-center flex-1">
+                                <span className="block text-sm text-gray-400 mb-1">{getTeamName(scoreModal.match.away_team_id)}</span>
+                                <input
+                                    type="number"
+                                    className="w-16 p-2 text-center rounded bg-white/5 border border-white/10 text-white font-bold text-xl"
+                                    value={scoreModal.awayScore}
+                                    onChange={e => setScoreModal({ ...scoreModal, awayScore: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setScoreModal({ isOpen: false, match: null, homeScore: '', awayScore: '' })}
+                                className="flex-1 py-2 bg-white/5 text-white rounded hover:bg-white/10 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveScore}
+                                className="flex-1 py-2 bg-neon-blue text-obsidian font-bold rounded hover:bg-neon-cyan transition-colors"
+                            >
+                                Save Score
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Matches List */}
             <div className="space-y-8">
                 {Object.keys(matchesByDate).length === 0 ? (
@@ -294,26 +358,51 @@ const LeagueSchedulePage = () => {
                                 {dayMatches.map(match => (
                                     <div key={match.id} className="glass-panel p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:border-white/20 transition-colors">
                                         <div className="flex items-center gap-8 flex-1">
-                                            <div className="flex-1 text-right font-bold text-white text-lg">
+                                            <div className={`flex-1 text-right font-bold text-lg ${match.home_score > match.away_score ? 'text-neon-green' : 'text-white'}`}>
                                                 {getTeamName(match.home_team_id)}
                                             </div>
-                                            <div className="px-3 py-1 bg-white/5 rounded text-sm text-gray-400 font-mono">
-                                                VS
+                                            <div className="px-3 py-1 bg-white/5 rounded text-sm text-gray-400 font-mono min-w-[80px] text-center">
+                                                {match.status === 'completed' ? (
+                                                    <span className="text-white font-bold">{match.home_score} - {match.away_score}</span>
+                                                ) : (
+                                                    'VS'
+                                                )}
                                             </div>
-                                            <div className="flex-1 text-left font-bold text-white text-lg">
+                                            <div className={`flex-1 text-left font-bold text-lg ${match.away_score > match.home_score ? 'text-neon-green' : 'text-white'}`}>
                                                 {getTeamName(match.away_team_id)}
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-6 text-sm text-gray-400 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 w-full md:w-auto justify-between md:justify-end">
-                                            <div className="flex items-center gap-2">
-                                                <Clock size={16} />
-                                                {formatTime(match.start_time)}
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock size={16} />
+                                                    {formatTime(match.start_time)}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} />
+                                                    {match.location}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <MapPin size={16} />
-                                                {match.location}
-                                            </div>
+
+                                            {user?.role === 'director' && match.status !== 'completed' && (
+                                                <button
+                                                    onClick={() => setScoreModal({
+                                                        isOpen: true,
+                                                        match,
+                                                        homeScore: match.home_score || '',
+                                                        awayScore: match.away_score || ''
+                                                    })}
+                                                    className="px-3 py-1 bg-white/10 text-white rounded hover:bg-white/20 transition-colors text-xs uppercase font-bold tracking-wider"
+                                                >
+                                                    Enter Score
+                                                </button>
+                                            )}
+                                            {match.status === 'completed' && (
+                                                <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-bold uppercase tracking-wider">
+                                                    Final
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

@@ -54,7 +54,7 @@ const TeamsPage = () => {
             fetchTeams();
         } catch (err) {
             console.error('Error creating team:', err);
-            setError('Failed to create team. Please try again.');
+            setError(`Failed to create team: ${err.message || err.error_description || 'Unknown error'}`);
         }
     };
 

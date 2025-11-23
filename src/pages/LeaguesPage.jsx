@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Filter } from 'lucide-react';
+import { Plus, Sparkles, Filter, ChevronDown } from 'lucide-react';
 import LeagueCard from '../components/LeagueCard';
 import { useStore } from '../store';
 import { useAuth } from '../context/AuthContext';
@@ -9,10 +9,27 @@ const LeaguesPage = () => {
     const navigate = useNavigate();
     const { leagues, fetchLeagues } = useStore();
     const { user } = useAuth();
+    const [filter, setFilter] = useState('all');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
         fetchLeagues();
     }, [fetchLeagues]);
+
+    // Set default filter for students
+    useEffect(() => {
+        if (user?.role === 'student') {
+            setFilter('upcoming');
+        }
+    }, [user]);
+
+    const filteredLeagues = leagues.filter(league => {
+        if (filter === 'all') return true;
+        if (filter === 'upcoming') return league.status === 'upcoming' || league.registrationOpen || league.registration_open;
+        if (filter === 'current') return league.status === 'active';
+        if (filter === 'past') return league.status === 'past' || league.status === 'completed';
+        return true;
+    });
 
     return (
         <div className="space-y-8">
@@ -27,10 +44,36 @@ const LeaguesPage = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
-                        <Filter size={18} />
-                        Filter
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-colors min-w-[140px] justify-between"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Filter size={18} />
+                                <span className="capitalize">{filter}</span>
+                            </div>
+                            <ChevronDown size={16} />
+                        </button>
+
+                        {isFilterOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-charcoal border border-white/10 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                {['all', 'upcoming', 'current', 'past'].map(option => (
+                                    <button
+                                        key={option}
+                                        onClick={() => {
+                                            setFilter(option);
+                                            setIsFilterOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-3 text-sm hover:bg-white/5 transition-colors ${filter === option ? 'text-neon-blue font-bold bg-white/5' : 'text-gray-400'}`}
+                                    >
+                                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     {user?.role === 'director' && (
                         <button
                             onClick={() => navigate('/leagues/create')}
@@ -66,9 +109,14 @@ const LeaguesPage = () => {
 
             {/* Leagues Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {leagues.map((league) => (
+                {filteredLeagues.map((league) => (
                     <LeagueCard key={league.id} league={league} />
                 ))}
+                {filteredLeagues.length === 0 && (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                        No leagues found for this filter.
+                    </div>
+                )}
             </div>
         </div>
     );

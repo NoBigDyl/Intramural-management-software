@@ -32,15 +32,14 @@ const initialLeagues = [
 ];
 
 const initialTeams = [
-    { id: 't1', name: 'The Ballers', leagueId: 'l1', captainId: 'u2', members: ['u2', 'u3'], wins: 2, losses: 0, points: 45 },
-    { id: 't2', name: 'Net Ninjas', leagueId: 'l1', captainId: 'u4', members: ['u4'], wins: 1, losses: 1, points: 32 },
-    { id: 't3', name: 'Goal Diggers', leagueId: 'l2', captainId: 'u5', members: ['u5'], wins: 3, losses: 0, points: 12 },
+    { id: 't1', name: 'The Ballers', leagueId: 'l1', captainId: '22222222-2222-2222-2222-222222222222', members: ['22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333'], wins: 2, losses: 0, points: 45 },
+    { id: 't2', name: 'Net Ninjas', leagueId: 'l1', captainId: '33333333-3333-3333-3333-333333333333', members: ['33333333-3333-3333-3333-333333333333'], wins: 1, losses: 1, points: 32 },
 ];
 
 const initialUsers = [
-    { id: 'u1', name: 'Admin User', email: 'admin@university.edu', role: 'director', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Admin' },
-    { id: 'u2', name: 'John Doe', email: 'john@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=John' },
-    { id: 'u3', name: 'Jane Smith', email: 'jane@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Jane' },
+    { id: '11111111-1111-1111-1111-111111111111', name: 'Admin User', email: 'admin@university.edu', role: 'director', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Admin' },
+    { id: '22222222-2222-2222-2222-222222222222', name: 'John Doe', email: 'john@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=John' },
+    { id: '33333333-3333-3333-3333-333333333333', name: 'Jane Smith', email: 'jane@student.edu', role: 'student', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Jane' },
 ];
 
 export const useStore = create((set, get) => ({
@@ -230,6 +229,94 @@ export const useStore = create((set, get) => ({
 
         if (error) throw error;
         set((state) => ({ matches: [...state.matches, ...data] }));
+    },
+
+    updateMatch: async (id, updates) => {
+        const { data, error } = await supabase
+            .from('matches')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        set((state) => ({
+            matches: state.matches.map(m => m.id === id ? data : m)
+        }));
+
+        // Trigger standings recalculation if the match is completed
+        if (data.status === 'completed' && data.league_id) {
+            get().recalculateStandings(data.league_id);
+        }
+    },
+
+    recalculateStandings: async (leagueId) => {
+        // 1. Fetch all completed matches for the league
+        const { data: matches, error: matchError } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('league_id', leagueId)
+            .eq('status', 'completed');
+
+        if (matchError) {
+            console.error('Error fetching matches for standings:', matchError);
+            return;
+        }
+
+        // 2. Fetch all teams for the league
+        const { data: teams, error: teamError } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('league_id', leagueId);
+
+        if (teamError) {
+            console.error('Error fetching teams for standings:', teamError);
+            return;
+        }
+
+        // 3. Calculate Stats
+        const teamStats = {};
+        teams.forEach(team => {
+            teamStats[team.id] = { wins: 0, losses: 0, draws: 0, points: 0 };
+        });
+
+        matches.forEach(match => {
+            const homeId = match.home_team_id;
+            const awayId = match.away_team_id;
+            const homeScore = match.home_score;
+            const awayScore = match.away_score;
+
+            if (teamStats[homeId] && teamStats[awayId]) {
+                if (homeScore > awayScore) {
+                    teamStats[homeId].wins += 1;
+                    teamStats[homeId].points += 3; // 3 pts for win
+                    teamStats[awayId].losses += 1;
+                } else if (awayScore > homeScore) {
+                    teamStats[awayId].wins += 1;
+                    teamStats[awayId].points += 3;
+                    teamStats[homeId].losses += 1;
+                } else {
+                    teamStats[homeId].draws += 1;
+                    teamStats[homeId].points += 1; // 1 pt for draw
+                    teamStats[awayId].draws += 1;
+                    teamStats[awayId].points += 1;
+                }
+            }
+        });
+
+        // 4. Update Teams in DB
+        const updates = Object.keys(teamStats).map(async (teamId) => {
+            return supabase
+                .from('teams')
+                .update(teamStats[teamId])
+                .eq('id', teamId);
+        });
+
+        await Promise.all(updates);
+
+        // 5. Refresh local teams state
+        get().fetchTeams(leagueId);
     },
 
     addTeam: (team) => set((state) => ({
