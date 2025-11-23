@@ -85,7 +85,9 @@ const LeagueCard = ({ league }) => {
                     <div className="p-1.5 rounded-md bg-white/5 text-gray-500">
                         <Calendar size={14} />
                     </div>
-                    <span>{league.startDate || league.start_date} - {league.endDate || league.end_date}</span>
+                    <span>
+                        {new Date(league.startDate || league.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(league.endDate || league.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-400">
                     <div className="p-1.5 rounded-md bg-white/5 text-gray-500">

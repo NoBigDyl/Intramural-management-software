@@ -174,10 +174,10 @@ const StudentHomePage = () => {
                                     {isCheckedIn ? 'Checked In ✓' : 'Check In'}
                                 </button>
                                 <button
-                                    onClick={() => navigate('/leagues/l1/schedule')} // Hardcoded for demo, should be dynamic
+                                    onClick={() => navigate('/leagues/l1')} // Hardcoded for demo, should be dynamic
                                     className="w-full py-2 rounded-lg font-bold bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue hover:text-obsidian transition-all"
                                 >
-                                    View Full Schedule
+                                    View League Details
                                 </button>
                             </div>
                         </div>
@@ -217,11 +217,11 @@ const StudentHomePage = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(`/leagues/${team.leagueId}/schedule`);
+                                            navigate(`/leagues/${team.leagueId}`);
                                         }}
                                         className="text-xs font-bold text-neon-blue hover:text-white transition-colors"
                                     >
-                                        View Schedule &rarr;
+                                        View League &rarr;
                                     </button>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Users, Trophy, Activity, Hash } from 'lucide-react';
 import { useStore } from '../store';
+import Bracket from '../components/Bracket';
 
 const LeagueDetailsPage = () => {
     const { id } = useParams();
@@ -219,9 +220,18 @@ const LeagueDetailsContent = ({ id, navigate }) => {
                 >
                     Tournament Bracket
                 </button>
+                <button
+                    onClick={() => setActiveTab('schedule')}
+                    className={`pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all ${activeTab === 'schedule'
+                        ? 'text-neon-blue border-b-2 border-neon-blue'
+                        : 'text-gray-400 hover:text-white'
+                        }`}
+                >
+                    Schedule
+                </button>
             </div>
 
-            {activeTab === 'standings' ? (
+            {activeTab === 'standings' && (
                 <div className="glass-panel p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-white/5 rounded-lg">
@@ -267,7 +277,9 @@ const LeagueDetailsContent = ({ id, navigate }) => {
                         </table>
                     </div>
                 </div>
-            ) : (
+            )}
+
+            {activeTab === 'bracket' && (
                 <div className="glass-panel p-8 overflow-hidden">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-white/5 rounded-lg">
@@ -279,6 +291,89 @@ const LeagueDetailsContent = ({ id, navigate }) => {
                         matches={(matches || []).filter(m => m.league_id === id)}
                         teams={teams || []}
                     />
+                </div>
+            )}
+
+            {activeTab === 'schedule' && (
+                <div className="glass-panel p-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-lg">
+                                <Calendar size={20} className="text-neon-blue" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white">Full Schedule</h3>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        {(matches || []).filter(m => m.league_id === id).length === 0 ? (
+                            <div className="text-center py-12 text-gray-500">
+                                No matches scheduled yet.
+                            </div>
+                        ) : (
+                            Object.entries(
+                                (matches || [])
+                                    .filter(m => m.league_id === id)
+                                    .reduce((acc, match) => {
+                                        const date = new Date(match.start_time).toDateString();
+                                        if (!acc[date]) acc[date] = [];
+                                        acc[date].push(match);
+                                        return acc;
+                                    }, {})
+                            )
+                                .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+                                .map(([date, dayMatches]) => (
+                                    <div key={date}>
+                                        <h3 className="text-lg font-bold text-neon-blue mb-4 sticky top-0 bg-obsidian/90 backdrop-blur py-2 z-10 border-b border-white/5">
+                                            {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {dayMatches.map(match => {
+                                                const homeTeam = teams.find(t => t.id === match.home_team_id);
+                                                const awayTeam = teams.find(t => t.id === match.away_team_id);
+                                                return (
+                                                    <div key={match.id} className="glass-panel p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:border-white/20 transition-colors">
+                                                        <div className="flex items-center gap-8 flex-1">
+                                                            <div className={`flex-1 text-right font-bold text-lg ${match.home_score > match.away_score ? 'text-neon-green' : 'text-white'}`}>
+                                                                {homeTeam ? homeTeam.name : 'Unknown'}
+                                                            </div>
+                                                            <div className="px-3 py-1 bg-white/5 rounded text-sm text-gray-400 font-mono min-w-[80px] text-center">
+                                                                {match.status === 'completed' ? (
+                                                                    <span className="text-white font-bold">{match.home_score} - {match.away_score}</span>
+                                                                ) : (
+                                                                    'VS'
+                                                                )}
+                                                            </div>
+                                                            <div className={`flex-1 text-left font-bold text-lg ${match.away_score > match.home_score ? 'text-neon-green' : 'text-white'}`}>
+                                                                {awayTeam ? awayTeam.name : 'Unknown'}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-6 text-sm text-gray-400 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 w-full md:w-auto justify-between md:justify-end">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Calendar size={16} />
+                                                                    {new Date(match.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Hash size={16} />
+                                                                    {match.location}
+                                                                </div>
+                                                            </div>
+                                                            {match.status === 'completed' && (
+                                                                <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-bold uppercase tracking-wider">
+                                                                    Final
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
                 </div>
             )}
         </div>
