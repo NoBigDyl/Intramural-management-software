@@ -1,12 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Users, Calendar, ArrowRight, Plus, Upload, Activity } from 'lucide-react';
+import { Trophy, Users, Calendar, ArrowRight, Plus, Upload, Activity, Megaphone } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
-    const { leagues, users } = useStore();
+    const { createAnnouncement, leagues, teams, users } = useStore();
+    const { user } = useAuth(); // Get current user for author_id
 
     const stats = [
         { label: 'Active Leagues', value: leagues.filter(l => l.status === 'active').length, icon: Trophy, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
@@ -21,9 +22,12 @@ const DashboardPage = () => {
     ];
 
     const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = React.useState(false);
-    const [announcement, setAnnouncement] = React.useState({ title: '', content: '' });
-    const { createAnnouncement } = useStore();
-    const { user } = useAuth(); // Get current user for author_id
+    const [announcement, setAnnouncement] = React.useState({
+        title: '',
+        content: '',
+        targetType: 'all',
+        targetId: ''
+    });
 
     const handleSendAnnouncement = async (e) => {
         e.preventDefault();
@@ -31,10 +35,12 @@ const DashboardPage = () => {
             await createAnnouncement({
                 title: announcement.title,
                 content: announcement.content,
-                author_id: user?.id
+                author_id: user?.id,
+                targetType: announcement.targetType,
+                targetId: announcement.targetId
             });
             setIsAnnouncementModalOpen(false);
-            setAnnouncement({ title: '', content: '' });
+            setAnnouncement({ title: '', content: '', targetType: 'all', targetId: '' });
             alert('Announcement sent successfully!');
         } catch (error) {
             alert('Error sending announcement: ' + error.message);
@@ -98,7 +104,7 @@ const DashboardPage = () => {
                                 className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-neon-pink/10 hover:border-neon-pink/30 group transition-all text-left"
                             >
                                 <div className="p-2 w-fit rounded-lg bg-neon-pink/10 text-neon-pink mb-3 group-hover:scale-110 transition-transform">
-                                    <Activity size={20} />
+                                    <Megaphone size={20} />
                                 </div>
                                 <div className="font-bold text-white mb-1">Announcement</div>
                                 <div className="text-sm text-gray-400">Notify all students</div>
@@ -201,6 +207,73 @@ const DashboardPage = () => {
                                     placeholder="Type your message here..."
                                     required
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Target Audience</label>
+                                    <select
+                                        value={announcement.targetType}
+                                        onChange={e => setAnnouncement({ ...announcement, targetType: e.target.value, targetId: '' })}
+                                        className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all"
+                                    >
+                                        <option value="all">All Students</option>
+                                        <option value="league">Specific League</option>
+                                        <option value="team">Specific Team</option>
+                                        <option value="user">Specific Student</option>
+                                    </select>
+                                </div>
+
+                                {announcement.targetType === 'league' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-1">Select League</label>
+                                        <select
+                                            value={announcement.targetId}
+                                            onChange={e => setAnnouncement({ ...announcement, targetId: e.target.value })}
+                                            className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all"
+                                            required
+                                        >
+                                            <option value="">Select League...</option>
+                                            {leagues.map(l => (
+                                                <option key={l.id} value={l.id}>{l.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {announcement.targetType === 'team' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-1">Select Team</label>
+                                        <select
+                                            value={announcement.targetId}
+                                            onChange={e => setAnnouncement({ ...announcement, targetId: e.target.value })}
+                                            className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all"
+                                            required
+                                        >
+                                            <option value="">Select Team...</option>
+                                            {teams.map(t => (
+                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {announcement.targetType === 'user' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-1">Select Student</label>
+                                        <select
+                                            value={announcement.targetId}
+                                            onChange={e => setAnnouncement({ ...announcement, targetId: e.target.value })}
+                                            className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all"
+                                            required
+                                        >
+                                            <option value="">Select Student...</option>
+                                            {users.filter(u => u.role === 'student').map(u => (
+                                                <option key={u.id} value={u.id}>{u.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-4">

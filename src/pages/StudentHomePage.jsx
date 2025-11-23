@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Shield, ArrowRight, MapPin, Clock, Plus, Trophy, Activity, Star, TrendingUp, Eye, EyeOff, Zap, Info, Check, X } from 'lucide-react';
+import { Calendar, Shield, ArrowRight, MapPin, Clock, Plus, Trophy, Activity, Star, TrendingUp, Eye, EyeOff, Zap, Info, Check, X, Megaphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 import { useStore } from '../store';
@@ -310,12 +310,12 @@ const StudentHomePage = () => {
                             </div>
                         ) : (
                             announcements.map(announcement => (
-                                <div key={announcement.id} className="flex gap-4">
+                                <div key={announcement.id} className="flex gap-4 relative group">
                                     <div className="w-10 h-10 rounded-full bg-neon-purple/10 text-neon-purple flex items-center justify-center flex-shrink-0">
-                                        📢
+                                        <Megaphone size={20} />
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-white mb-1">{announcement.title}</h4>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-white mb-1 pr-6">{announcement.title}</h4>
                                         <p className="text-sm text-gray-400 leading-relaxed">
                                             {announcement.content}
                                         </p>
@@ -323,6 +323,12 @@ const StudentHomePage = () => {
                                             {new Date(announcement.created_at).toLocaleDateString()}
                                         </p>
                                     </div>
+                                    <button
+                                        className="absolute top-0 right-0 text-gray-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                                        title="Dismiss"
+                                    >
+                                        <X size={16} />
+                                    </button>
                                 </div>
                             ))
                         )}

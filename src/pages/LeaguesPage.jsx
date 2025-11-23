@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Sparkles, Filter, ChevronDown, Search } from 'lucide-react';
 import LeagueCard from '../components/LeagueCard';
 import { useStore } from '../store';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ const LeaguesPage = () => {
     const { leagues, fetchLeagues } = useStore();
     const { user } = useAuth();
     const [filter, setFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
@@ -24,8 +25,21 @@ const LeaguesPage = () => {
     }, [user]);
 
     const filteredLeagues = leagues.filter(league => {
+        // Search Filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch =
+                (league.name?.toLowerCase() || '').includes(query) ||
+                (league.sport?.toLowerCase() || '').includes(query);
+            if (!matchesSearch) return false;
+        }
+
+        // Status Filter
         if (filter === 'all') return true;
-        if (filter === 'upcoming') return league.status === 'upcoming' || league.registrationOpen || league.registration_open;
+        if (filter === 'upcoming') {
+            // Fix: Upcoming should NOT include active leagues
+            return (league.status === 'upcoming' || league.registrationOpen || league.registration_open) && league.status !== 'active';
+        }
         if (filter === 'current') return league.status === 'active';
         if (filter === 'past') return league.status === 'past' || league.status === 'completed';
         return true;
@@ -44,6 +58,18 @@ const LeaguesPage = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Search Bar */}
+                    <div className="relative hidden md:block">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search leagues..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-neon-blue/50 transition-all w-64"
+                        />
+                    </div>
+
                     <div className="relative">
                         <button
                             onClick={() => setIsFilterOpen(!isFilterOpen)}

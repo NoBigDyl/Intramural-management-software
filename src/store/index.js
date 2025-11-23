@@ -51,6 +51,7 @@ export const useStore = create((set, get) => ({
     teams: [],
     matches: [],
     announcements: [],
+    resources: [],
     isLoading: false,
     error: null,
 
@@ -269,24 +270,90 @@ export const useStore = create((set, get) => ({
 
     // Announcements Actions
     fetchAnnouncements: async () => {
+        const currentUser = get().currentUser;
+        if (!currentUser) return;
+
         const { data, error } = await supabase
             .from('announcements')
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) console.error('Error fetching announcements:', error);
-        else set({ announcements: data || [] });
+        if (error) {
+            console.error('Error fetching announcements:', error);
+            return;
+        }
+
+        // Filter announcements based on targeting
+        const filteredAnnouncements = data.filter(announcement => {
+            if (announcement.target_type === 'all') return true;
+            if (currentUser.role === 'director') return true; // Directors see all
+
+            if (announcement.target_type === 'user') {
+                return announcement.target_id === currentUser.id;
+            }
+
+            if (announcement.target_type === 'league') {
+                // Check if user is in a team that belongs to this league
+                const userTeams = get().teams.filter(t =>
+                    t.captainId === currentUser.id ||
+                    t.captain_id === currentUser.id ||
+                    (Array.isArray(t.members) && t.members.includes(currentUser.id))
+                );
+                return userTeams.some(t => t.leagueId === announcement.target_id || t.league_id === announcement.target_id);
+            }
+
+            if (announcement.target_type === 'team') {
+                // Check if user is in this specific team
+                const team = get().teams.find(t => t.id === announcement.target_id);
+                if (!team) return false;
+                return team.captainId === currentUser.id ||
+                    team.captain_id === currentUser.id ||
+                    (Array.isArray(team.members) && team.members.includes(currentUser.id));
+            }
+
+            return false;
+        });
+
+        set({ announcements: filteredAnnouncements });
     },
 
     createAnnouncement: async (announcement) => {
         const { data, error } = await supabase
             .from('announcements')
-            .insert([announcement])
+            .insert([{
+                title: announcement.title,
+                content: announcement.content,
+                author_id: announcement.author_id,
+                target_type: announcement.targetType || 'all',
+                target_id: announcement.targetId || null
+            }])
             .select()
             .single();
 
         if (error) throw error;
         set((state) => ({ announcements: [data, ...state.announcements] }));
+    },
+
+    // Resources Actions
+    fetchResources: async () => {
+        const { data, error } = await supabase
+            .from('resources')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) console.error('Error fetching resources:', error);
+        else set({ resources: data || [] });
+    },
+
+    createResource: async (resource) => {
+        const { data, error } = await supabase
+            .from('resources')
+            .insert([resource])
+            .select()
+            .single();
+
+        if (error) throw error;
+        set((state) => ({ resources: [data, ...state.resources] }));
     },
 
     createMatches: async (matchesList) => {
