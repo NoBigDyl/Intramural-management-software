@@ -6,12 +6,53 @@ import { useStore } from '../store';
 const LeagueDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getLeague, fetchTeams, teams, fetchLeagues } = useStore();
+
+    return (
+        <ErrorBoundary>
+            <LeagueDetailsContent id={id} navigate={navigate} />
+        </ErrorBoundary>
+    );
+};
+
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error("LeagueDetailsPage Error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-8 text-center text-red-500">
+                    <h2 className="text-xl font-bold mb-2">Something went wrong.</h2>
+                    <p className="font-mono text-sm bg-black/50 p-4 rounded text-left overflow-auto">
+                        {this.state.error && this.state.error.toString()}
+                    </p>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+const LeagueDetailsContent = ({ id, navigate }) => {
+    const { getLeague, fetchTeams, teams, fetchLeagues, fetchMatches, matches } = useStore();
+    const [activeTab, setActiveTab] = React.useState('standings');
 
     React.useEffect(() => {
         fetchLeagues();
         fetchTeams(id);
-    }, [id, fetchTeams, fetchLeagues]);
+        fetchMatches(id);
+    }, [id, fetchTeams, fetchLeagues, fetchMatches]);
 
     const league = getLeague(id);
 
@@ -158,52 +199,88 @@ const LeagueDetailsPage = () => {
                 </div>
             </div>
 
-            {/* Standings Section */}
-            <div className="glass-panel p-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-white/5 rounded-lg">
-                        <Trophy size={20} className="text-yellow-500" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white">League Standings</h3>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-white/10">
-                                <th className="p-4 font-bold">Rank</th>
-                                <th className="p-4 font-bold">Team</th>
-                                <th className="p-4 font-bold text-center">GP</th>
-                                <th className="p-4 font-bold text-center">W</th>
-                                <th className="p-4 font-bold text-center">L</th>
-                                <th className="p-4 font-bold text-center">Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-white">
-                            {teams
-                                .filter(t => t.leagueId === id || t.league_id === id)
-                                .sort((a, b) => (b.wins || 0) - (a.wins || 0)) // Sort by wins for now
-                                .map((team, index) => (
-                                    <tr key={team.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                        <td className="p-4 font-mono text-gray-400">#{index + 1}</td>
-                                        <td className="p-4 font-bold">{team.name}</td>
-                                        <td className="p-4 text-center text-gray-400">{(team.wins || 0) + (team.losses || 0)}</td>
-                                        <td className="p-4 text-center text-green-400 font-bold">{team.wins || 0}</td>
-                                        <td className="p-4 text-center text-red-400">{team.losses || 0}</td>
-                                        <td className="p-4 text-center font-bold text-neon-blue">{team.points || 0}</td>
-                                    </tr>
-                                ))}
-                            {teams.filter(t => t.leagueId === id || t.league_id === id).length === 0 && (
-                                <tr>
-                                    <td colSpan="6" className="p-8 text-center text-gray-500">
-                                        No teams in this league yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+            {/* Content Tabs */}
+            <div className="flex items-center gap-6 border-b border-white/10 mb-8">
+                <button
+                    onClick={() => setActiveTab('standings')}
+                    className={`pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all ${activeTab === 'standings'
+                        ? 'text-neon-blue border-b-2 border-neon-blue'
+                        : 'text-gray-400 hover:text-white'
+                        }`}
+                >
+                    Standings
+                </button>
+                <button
+                    onClick={() => setActiveTab('bracket')}
+                    className={`pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all ${activeTab === 'bracket'
+                        ? 'text-neon-blue border-b-2 border-neon-blue'
+                        : 'text-gray-400 hover:text-white'
+                        }`}
+                >
+                    Tournament Bracket
+                </button>
             </div>
+
+            {activeTab === 'standings' ? (
+                <div className="glass-panel p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-white/5 rounded-lg">
+                            <Trophy size={20} className="text-yellow-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">League Standings</h3>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-white/10">
+                                    <th className="p-4 font-bold">Rank</th>
+                                    <th className="p-4 font-bold">Team</th>
+                                    <th className="p-4 font-bold text-center">GP</th>
+                                    <th className="p-4 font-bold text-center">W</th>
+                                    <th className="p-4 font-bold text-center">L</th>
+                                    <th className="p-4 font-bold text-center">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-white">
+                                {(teams || [])
+                                    .filter(t => t.leagueId === id || t.league_id === id)
+                                    .sort((a, b) => (b.wins || 0) - (a.wins || 0)) // Sort by wins for now
+                                    .map((team, index) => (
+                                        <tr key={team.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                            <td className="p-4 font-mono text-gray-400">#{index + 1}</td>
+                                            <td className="p-4 font-bold">{team.name}</td>
+                                            <td className="p-4 font-bold text-center text-gray-400">{(team.wins || 0) + (team.losses || 0) + (team.draws || 0)}</td>
+                                            <td className="p-4 font-bold text-center text-neon-green">{team.wins || 0}</td>
+                                            <td className="p-4 font-bold text-center text-red-400">{team.losses || 0}</td>
+                                            <td className="p-4 font-bold text-center text-neon-blue">{team.points || 0}</td>
+                                        </tr>
+                                    ))}
+                                {(teams || []).filter(t => t.leagueId === id || t.league_id === id).length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="p-8 text-center text-gray-500">
+                                            No teams in this league yet.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ) : (
+                <div className="glass-panel p-8 overflow-hidden">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-white/5 rounded-lg">
+                            <Trophy size={20} className="text-neon-purple" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">Tournament Bracket</h3>
+                    </div>
+                    <Bracket
+                        matches={(matches || []).filter(m => m.league_id === id)}
+                        teams={teams || []}
+                    />
+                </div>
+            )}
         </div>
     );
 };
