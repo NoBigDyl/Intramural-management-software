@@ -2,10 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, MoreVertical, Edit2, Copy, ArrowRight, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
+import { useAuth } from '../context/AuthContext';
 
 const LeagueCard = ({ league }) => {
     const navigate = useNavigate();
     const { deleteLeague } = useStore();
+    const { user } = useAuth();
 
     const handleDelete = (e) => {
         e.stopPropagation();
@@ -33,35 +35,49 @@ const LeagueCard = ({ league }) => {
                     </div>
                     <h3 className="font-display font-bold text-xl text-white group-hover:text-neon-blue transition-colors">{league.name}</h3>
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {user?.role === 'director' && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/leagues/edit/${league.id}`);
+                            }}
+                            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            title="Edit"
+                        >
+                            <Edit2 size={16} />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/leagues/duplicate/${league.id}`);
+                            }}
+                            className="p-2 text-gray-400 hover:text-neon-blue hover:bg-neon-blue/10 rounded-lg transition-colors"
+                            title="Duplicate"
+                        >
+                            <Copy size={16} />
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Delete"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                )}
+                {user?.role === 'student' && (league.registrationOpen || league.registration_open) && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/leagues/edit/${league.id}`);
+                            // Navigate to teams page to create a team
+                            navigate('/teams');
                         }}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                        title="Edit"
+                        className="px-4 py-1.5 bg-neon-blue/10 text-neon-blue border border-neon-blue/20 rounded-lg text-sm font-bold hover:bg-neon-blue hover:text-obsidian transition-all shadow-neon-blue"
                     >
-                        <Edit2 size={16} />
+                        Join League
                     </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/leagues/duplicate/${league.id}`);
-                        }}
-                        className="p-2 text-gray-400 hover:text-neon-blue hover:bg-neon-blue/10 rounded-lg transition-colors"
-                        title="Duplicate"
-                    >
-                        <Copy size={16} />
-                    </button>
-                    <button
-                        onClick={handleDelete}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Delete"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                )}
             </div>
 
             <div className="space-y-3 mb-6 relative z-10">

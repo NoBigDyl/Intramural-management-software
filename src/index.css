@@ -42,3 +42,9 @@ body {
   background-color: #f9fafb;
   /* Light gray background similar to dashboard */
 }
+
+/* Custom Date Picker Icon Color */
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

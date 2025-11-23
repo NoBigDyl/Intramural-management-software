@@ -49,7 +49,8 @@ export const useStore = create((set, get) => ({
     users: initialUsers,
 
     leagues: [], // Start with empty leagues
-    teams: initialTeams,
+    teams: [],
+    matches: [],
     isLoading: false,
     error: null,
 
@@ -158,6 +159,77 @@ export const useStore = create((set, get) => ({
             console.error('Error deleting league:', error);
             set({ error: error.message, isLoading: false });
         }
+    },
+
+    // Teams Actions
+    fetchTeams: async (leagueId = null) => {
+        let query = supabase.from('teams').select('*');
+
+        if (leagueId) {
+            query = query.eq('league_id', leagueId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) console.error('Error fetching teams:', error);
+        else set({ teams: data || [] });
+    },
+
+    createTeam: async (team) => {
+        // Prepare DB object
+        const dbTeam = {
+            name: team.name,
+            league_id: team.leagueId || team.league_id,
+            captain_id: team.captainId || team.captain_id,
+            members: team.members || (team.captainId ? [team.captainId] : []),
+            wins: team.wins || 0,
+            losses: team.losses || 0,
+            draws: team.draws || 0,
+            points: team.points || 0,
+            division: team.division || null
+        };
+
+        const { data, error } = await supabase
+            .from('teams')
+            .insert([dbTeam])
+            .select()
+            .single();
+
+        if (error) throw error;
+        set((state) => ({ teams: [...state.teams, data] }));
+    },
+
+    // Matches Actions
+    fetchMatches: async (leagueId) => {
+        const { data, error } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('league_id', leagueId)
+            .order('start_time', { ascending: true });
+
+        if (error) console.error('Error fetching matches:', error);
+        else set({ matches: data || [] });
+    },
+
+    createMatch: async (match) => {
+        const { data, error } = await supabase
+            .from('matches')
+            .insert([match])
+            .select()
+            .single();
+
+        if (error) throw error;
+        set((state) => ({ matches: [...state.matches, data] }));
+    },
+
+    createMatches: async (matchesList) => {
+        const { data, error } = await supabase
+            .from('matches')
+            .insert(matchesList)
+            .select();
+
+        if (error) throw error;
+        set((state) => ({ matches: [...state.matches, ...data] }));
     },
 
     addTeam: (team) => set((state) => ({

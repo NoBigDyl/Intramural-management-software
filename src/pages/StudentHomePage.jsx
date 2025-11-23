@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Shield, ArrowRight, MapPin, Clock, Plus } from 'lucide-react';
+import { Calendar, Shield, ArrowRight, MapPin, Clock, Plus, Trophy, Activity, Star, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 import { useStore } from '../store';
@@ -9,8 +9,22 @@ const StudentHomePage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { teams = [], leagues = [] } = useStore();
+    const [showStats, setShowStats] = useState(false);
+    const [isCheckedIn, setIsCheckedIn] = useState(false);
 
     console.log('StudentHomePage Debug:', { user, teams, leagues });
+
+    // Mock stats data (same as ProfilePage for consistency)
+    const stats = {
+        gamesPlayed: 12,
+        wins: 8,
+        losses: 4,
+        winRate: '67%',
+        pointsScored: 145,
+        mvpAwards: 2,
+        streak: 'W2',
+        rank: '#42'
+    };
 
     const myTeams = (user && Array.isArray(teams)) ? teams.filter(t =>
         t.captainId === user.id || (Array.isArray(t.members) && t.members.includes(user.id))
@@ -37,10 +51,74 @@ const StudentHomePage = () => {
 
     return (
         <div className="space-y-8 max-w-5xl mx-auto">
-            <div>
-                <h1 className="text-3xl font-display font-bold text-white mb-2">Hey, {firstName}! 👋</h1>
-                <p className="text-gray-400">Ready for your game tonight?</p>
+            <div className="flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-display font-bold text-white mb-2">Hey, {firstName}! 👋</h1>
+                    <p className="text-gray-400">Ready for your game tonight?</p>
+                </div>
+                <button
+                    onClick={() => setShowStats(!showStats)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-sm"
+                >
+                    {showStats ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showStats ? 'Hide Stats' : 'Show Stats'}
+                </button>
             </div>
+
+            {/* Stats Section (Toggleable) */}
+            {showStats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-neon-blue">
+                        <div className="p-2 bg-neon-blue/10 rounded-lg text-neon-blue mb-2">
+                            <Trophy size={20} />
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.wins}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Wins</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-neon-purple">
+                        <div className="p-2 bg-neon-purple/10 rounded-lg text-neon-purple mb-2">
+                            <Activity size={20} />
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.gamesPlayed}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Games</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-neon-pink">
+                        <div className="p-2 bg-neon-pink/10 rounded-lg text-neon-pink mb-2">
+                            <Star size={20} />
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.mvpAwards}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">MVPs</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-neon-cyan">
+                        <div className="p-2 bg-neon-cyan/10 rounded-lg text-neon-cyan mb-2">
+                            <TrendingUp size={20} />
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.winRate}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Win Rate</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-yellow-500">
+                        <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500 mb-2">
+                            <div className="font-bold text-lg">PTS</div>
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.pointsScored}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Points</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-green-500">
+                        <div className="p-2 bg-green-500/10 rounded-lg text-green-500 mb-2">
+                            <div className="font-bold text-lg">STR</div>
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.streak}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Streak</div>
+                    </div>
+                    <div className="glass-panel p-4 flex flex-col items-center text-center hover:bg-white/5 transition-colors border-b-4 border-b-orange-500">
+                        <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 mb-2">
+                            <div className="font-bold text-lg">#</div>
+                        </div>
+                        <div className="text-2xl font-display font-bold text-white">{stats.rank}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Personal Rank</div>
+                    </div>
+                </div>
+            )}
 
             {/* Hero: Next Game */}
             <div className="relative overflow-hidden rounded-2xl glass-panel p-1 group">
@@ -85,8 +163,14 @@ const StudentHomePage = () => {
                                     {upcomingGame.location}
                                 </div>
                             </div>
-                            <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold transition-colors">
-                                Check In
+                            <button
+                                onClick={() => setIsCheckedIn(!isCheckedIn)}
+                                className={`w-full py-2 rounded-lg font-bold transition-all duration-300 ${isCheckedIn
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                                    : 'bg-white/10 hover:bg-white/20 text-white'
+                                    }`}
+                            >
+                                {isCheckedIn ? 'Checked In ✓' : 'Check In'}
                             </button>
                         </div>
 
