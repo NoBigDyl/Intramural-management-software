@@ -44,12 +44,13 @@ const initialUsers = [
 
 export const useStore = create((set, get) => ({
     // State
-    currentUser: initialUsers[0], // Default to Admin for now
+    currentUser: { ...initialUsers[0], xp: 500, level: 5 }, // Default to Admin for now
     users: initialUsers,
 
     leagues: [], // Start with empty leagues
     teams: [],
     matches: [],
+    announcements: [],
     isLoading: false,
     error: null,
 
@@ -68,7 +69,32 @@ export const useStore = create((set, get) => ({
         }
     },
 
-    setCurrentUser: (user) => set({ currentUser: user }),
+    setCurrentUser: (user) => {
+        set({ currentUser: user });
+        if (user) {
+            get().fetchProfile(user.id);
+        }
+    },
+
+    fetchProfile: async (userId) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching profile:', error);
+            // Fallback for mock users if DB record doesn't exist yet
+            set((state) => ({
+                currentUser: { ...state.currentUser, xp: 0, level: 1 }
+            }));
+        } else {
+            set((state) => ({
+                currentUser: { ...state.currentUser, ...data }
+            }));
+        }
+    },
 
     addLeague: async (league) => {
         set({ isLoading: true });
@@ -198,6 +224,26 @@ export const useStore = create((set, get) => ({
         set((state) => ({ teams: [...state.teams, data] }));
     },
 
+    deleteTeam: async (id) => {
+        set({ isLoading: true });
+        try {
+            const { error } = await supabase
+                .from('teams')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            set((state) => ({
+                teams: state.teams.filter(t => t.id !== id),
+                isLoading: false
+            }));
+        } catch (error) {
+            console.error('Error deleting team:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
     // Matches Actions
     fetchMatches: async (leagueId) => {
         const { data, error } = await supabase
@@ -219,6 +265,28 @@ export const useStore = create((set, get) => ({
 
         if (error) throw error;
         set((state) => ({ matches: [...state.matches, data] }));
+    },
+
+    // Announcements Actions
+    fetchAnnouncements: async () => {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) console.error('Error fetching announcements:', error);
+        else set({ announcements: data || [] });
+    },
+
+    createAnnouncement: async (announcement) => {
+        const { data, error } = await supabase
+            .from('announcements')
+            .insert([announcement])
+            .select()
+            .single();
+
+        if (error) throw error;
+        set((state) => ({ announcements: [data, ...state.announcements] }));
     },
 
     createMatches: async (matchesList) => {

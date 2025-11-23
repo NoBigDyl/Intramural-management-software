@@ -15,6 +15,7 @@ const MobileNav = () => {
         { label: 'Teams', path: '/teams', icon: Users },
         { label: 'Leagues', path: '/leagues', icon: Trophy },
         { label: 'Profile', path: '/profile', icon: User },
+        { label: 'Settings', path: '/settings', icon: Settings },
     ];
 
     const directorItems = [

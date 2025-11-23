@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Users, Trophy, Activity, Hash } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, Trophy, Activity, Hash, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
+import { useAuth } from '../context/AuthContext';
 import Bracket from '../components/Bracket';
 
 const LeagueDetailsPage = () => {
@@ -118,13 +119,29 @@ const LeagueDetailsContent = ({ id, navigate }) => {
                                 <Users size={20} />
                                 Manage Teams
                             </button>
-                            <button
-                                onClick={() => navigate(`/leagues/edit/${league.id}`)}
-                                className="px-4 py-3 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
-                                title="Edit League"
-                            >
-                                <Activity size={20} />
-                            </button>
+                            {useAuth().user?.role === 'director' && (
+                                <>
+                                    <button
+                                        onClick={() => navigate(`/leagues/edit/${league.id}`)}
+                                        className="px-4 py-3 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                                        title="Edit League"
+                                    >
+                                        <Activity size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('Are you sure you want to delete this league? This action cannot be undone.')) {
+                                                useStore.getState().deleteLeague(league.id);
+                                                navigate('/leagues');
+                                            }
+                                        }}
+                                        className="px-4 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                                        title="Delete League"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

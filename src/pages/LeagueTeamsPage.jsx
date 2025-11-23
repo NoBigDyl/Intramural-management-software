@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Trophy, Shield } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Trophy, Shield, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../context/AuthContext';
 
@@ -119,12 +119,28 @@ const LeagueTeamsPage = () => {
                     </div>
                 ) : (
                     teams.map(team => (
-                        <div key={team.id} className="glass-panel p-5 hover:border-white/20 transition-colors">
+                        <div key={team.id} className="glass-panel p-5 hover:border-white/20 transition-colors group relative">
                             <div className="flex justify-between items-start mb-3">
                                 <h3 className="font-bold text-xl text-white">{team.name}</h3>
-                                <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400 border border-white/5">
-                                    {team.division}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400 border border-white/5">
+                                        {team.division}
+                                    </span>
+                                    {user?.role === 'director' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm(`Are you sure you want to delete ${team.name}?`)) {
+                                                    useStore.getState().deleteTeam(team.id);
+                                                }
+                                            }}
+                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Delete Team"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2 text-sm text-gray-400">

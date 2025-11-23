@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Users, Calendar, ArrowRight, Plus, Upload, Activity } from 'lucide-react';
 import { useStore } from '../store';
+import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
@@ -18,6 +19,27 @@ const DashboardPage = () => {
         { id: 2, user: 'Mike Ross', action: 'created team', target: 'Suits & Sneakers', time: '15 mins ago' },
         { id: 3, user: 'System', action: 'generated schedule for', target: 'Flag Football', time: '1 hour ago' },
     ];
+
+    const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = React.useState(false);
+    const [announcement, setAnnouncement] = React.useState({ title: '', content: '' });
+    const { createAnnouncement } = useStore();
+    const { user } = useAuth(); // Get current user for author_id
+
+    const handleSendAnnouncement = async (e) => {
+        e.preventDefault();
+        try {
+            await createAnnouncement({
+                title: announcement.title,
+                content: announcement.content,
+                author_id: user?.id
+            });
+            setIsAnnouncementModalOpen(false);
+            setAnnouncement({ title: '', content: '' });
+            alert('Announcement sent successfully!');
+        } catch (error) {
+            alert('Error sending announcement: ' + error.message);
+        }
+    };
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
@@ -48,7 +70,7 @@ const DashboardPage = () => {
                     {/* Quick Actions */}
                     <div className="glass-panel p-8">
                         <h3 className="font-display font-bold text-xl text-white mb-6">Quick Actions</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <button
                                 onClick={() => navigate('/leagues/create')}
                                 className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-neon-blue/10 hover:border-neon-blue/30 group transition-all text-left"
@@ -69,6 +91,17 @@ const DashboardPage = () => {
                                 </div>
                                 <div className="font-bold text-white mb-1">Import Data</div>
                                 <div className="text-sm text-gray-400">Bulk upload teams or players</div>
+                            </button>
+
+                            <button
+                                onClick={() => setIsAnnouncementModalOpen(true)}
+                                className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-neon-pink/10 hover:border-neon-pink/30 group transition-all text-left"
+                            >
+                                <div className="p-2 w-fit rounded-lg bg-neon-pink/10 text-neon-pink mb-3 group-hover:scale-110 transition-transform">
+                                    <Activity size={20} />
+                                </div>
+                                <div className="font-bold text-white mb-1">Announcement</div>
+                                <div className="text-sm text-gray-400">Notify all students</div>
                             </button>
                         </div>
                     </div>
@@ -132,6 +165,56 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Announcement Modal */}
+            {isAnnouncementModalOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-charcoal border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                        <button
+                            onClick={() => setIsAnnouncementModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <Activity size={20} className="rotate-45" />
+                        </button>
+
+                        <h3 className="text-xl font-display font-bold text-white mb-6">Send Announcement</h3>
+
+                        <form onSubmit={handleSendAnnouncement} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    value={announcement.title}
+                                    onChange={e => setAnnouncement({ ...announcement, title: e.target.value })}
+                                    className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all"
+                                    placeholder="e.g. Playoffs Schedule"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Message</label>
+                                <textarea
+                                    value={announcement.content}
+                                    onChange={e => setAnnouncement({ ...announcement, content: e.target.value })}
+                                    className="w-full bg-obsidian border border-white/10 rounded-lg p-2.5 text-white focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition-all min-h-[100px]"
+                                    placeholder="Type your message here..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="pt-4">
+                                <button
+                                    type="submit"
+                                    className="w-full bg-neon-pink text-white font-bold py-3 rounded-lg hover:bg-neon-pink/80 transition-colors shadow-lg shadow-neon-pink/20"
+                                >
+                                    Send Announcement
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

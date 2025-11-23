@@ -70,10 +70,9 @@ const LeagueCard = ({ league }) => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            // Navigate to teams page to create a team
-                            navigate('/teams');
+                            navigate(`/teams?leagueId=${league.id}`);
                         }}
-                        className="px-4 py-1.5 bg-neon-blue/10 text-neon-blue border border-neon-blue/20 rounded-lg text-sm font-bold hover:bg-neon-blue hover:text-obsidian transition-all shadow-neon-blue"
+                        className="w-full py-2 rounded-lg font-bold bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue hover:text-obsidian transition-all"
                     >
                         Join League
                     </button>

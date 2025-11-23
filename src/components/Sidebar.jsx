@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Calendar, LogOut, Upload, User, LayoutDashboard, Settings } from 'lucide-react';
+import { Trophy, Users, Calendar, LogOut, Upload, User, LayoutDashboard, Settings, BarChart2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../store/index.js';
 
@@ -11,6 +11,7 @@ const Sidebar = () => {
 
     const directorItems = [
         { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+        { label: 'Analytics', path: '/analytics', icon: BarChart2 },
         { label: 'Leagues', path: '/leagues', icon: Trophy },
         { label: 'Teams', path: '/teams', icon: Users },
         { label: 'Import Data', path: '/import', icon: Upload },

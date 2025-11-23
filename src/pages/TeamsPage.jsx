@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Users, Shield, X } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Users, Shield, X, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../context/AuthContext';
 
@@ -103,6 +104,20 @@ const TeamsPage = () => {
                                     <p className="text-xs text-gray-400">{getLeagueName(team.leagueId || team.league_id)}</p>
                                 </div>
                             </div>
+                            {user?.role === 'director' && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm(`Are you sure you want to delete ${team.name}?`)) {
+                                            useStore.getState().deleteTeam(team.id);
+                                        }
+                                    }}
+                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Delete Team"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            )}
                         </div>
 
                         <div className="space-y-2 border-t border-white/5 pt-4">

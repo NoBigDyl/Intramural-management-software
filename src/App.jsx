@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import StudentHomePage from './pages/StudentHomePage';
 import SettingsPage from './pages/SettingsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Route guard for role-based access
@@ -58,10 +59,21 @@ const App = () => {
     <AuthProvider>
       <Layout>
         <Routes>
+
+
           <Route path="/" element={<HomeRoute />} />
+          <Route path="/analytics" element={
+            <ProtectedRoute allowedRoles={['director']}>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/leagues" element={<LeaguesPage />} />
           <Route path="/leagues/create" element={<CreateLeaguePage />} />
-          <Route path="/leagues/edit/:id" element={<EditLeaguePage />} />
+          <Route path="/leagues/edit/:id" element={
+            <ProtectedRoute allowedRoles={['director']}>
+              <EditLeaguePage />
+            </ProtectedRoute>
+          } />
           <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
           <Route path="/leagues/:id/schedule" element={<LeagueSchedulePage />} />
           <Route path="/leagues/:id/teams" element={<LeagueTeamsPage />} />
